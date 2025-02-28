@@ -2,7 +2,7 @@ import pandas as pd
 from pandas.testing import assert_index_equal, assert_frame_equal
 
 from bita.domain import filters, calendar_rules, weighting
-from bita.dtos import CalendarRule, BacktestFilter
+from bita.dtos import CalendarRule, BacktestFilter, WeightingMethod
 
 
 def test_calendar_rule_custom_dates():
@@ -34,7 +34,9 @@ def test_filter_top():
     data = pd.DataFrame(values, index=index)
     filter_config = BacktestFilter(type_="top_n", n=2, d="prices")
     result = filters.apply_filter(
-        filter_config, data, pd.to_datetime(["2024-01-01", "2024-01-15"]),
+        filter_config,
+        data,
+        pd.to_datetime(["2024-01-01", "2024-01-15"]),
     )
     expected = pd.DataFrame.from_dict(
         {
@@ -58,7 +60,9 @@ def test_filter_greater():
     data = pd.DataFrame(values, index=index)
     filter_config = BacktestFilter(type_="filter_by_value", p=19.0, d="prices")
     result = filters.apply_filter(
-        filter_config, data, pd.to_datetime(["2024-01-01", "2024-01-15"]),
+        filter_config,
+        data,
+        pd.to_datetime(["2024-01-01", "2024-01-15"]),
     )
     expected = pd.DataFrame.from_dict(
         {
@@ -72,8 +76,73 @@ def test_filter_greater():
 
 
 def test_weighting_method_equal_weight():
-    pass
+    config = WeightingMethod(type_="equal_weight", d="prices")
+    values = {
+        "0": [95.036355, 4.731177, 13.964960],
+        "1": [31.936291, 18.733920, 21.162002],
+        "2": [29.631908, 46.853490, 76.815065],
+        "3": [42.654515, 66.993398, 73.648067],
+    }
+    index = pd.to_datetime(["2024-01-01", "2024-01-15", "2024-02-01"])
+    data = pd.DataFrame(values, index=index)
+    securities = pd.Index(["0", "1", "2"])
+    dates = pd.DatetimeIndex(["2024-01-01", "2024-01-15"])
+    result = weighting.calculate_weights(config, securities, data, dates)
+
+    expected = pd.DataFrame.from_dict(
+        {
+            pd.Timestamp("2024-01-01 00:00:00"): {
+                "0": 0.3333333333333333,
+                "1": 0.3333333333333333,
+                "2": 0.3333333333333333,
+            },
+            pd.Timestamp("2024-01-15 00:00:00"): {
+                "0": 0.3333333333333333,
+                "1": 0.3333333333333333,
+                "2": 0.3333333333333333,
+            },
+            pd.Timestamp("2024-02-01 00:00:00"): {
+                "0": 0.3333333333333333,
+                "1": 0.3333333333333333,
+                "2": 0.3333333333333333,
+            },
+        },
+        orient="index",
+    )
+    assert_frame_equal(result, expected)
 
 
-def test_weighting_method_optimized_weight():
-    pass
+def test_calculate_optimized_weights():
+    values = {
+        "0": [95.036355, 4.731177, 13.964960],
+        "1": [31.936291, 18.733920, 21.162002],
+        "2": [29.631908, 46.853490, 76.815065],
+        "3": [42.654515, 66.993398, 73.648067],
+    }
+    index = pd.to_datetime(["2024-01-01", "2024-01-15", "2024-02-01"])
+    data = pd.DataFrame(values, index=index)
+    securities = pd.Index(["1", "2", "3"])
+
+    result = weighting._calculate_optimized_weights(data[securities], lb=0.1, ub=0.5)
+
+    expected = pd.DataFrame.from_dict(
+        {
+            pd.Timestamp("2024-01-01 00:00:00"): {
+                "1": 0.3999999999999999,
+                "2": 0.1,
+                "3": 0.5,
+            },
+            pd.Timestamp("2024-01-15 00:00:00"): {
+                "1": 0.1,
+                "2": 0.3999999999999999,
+                "3": 0.5,
+            },
+            pd.Timestamp("2024-02-01 00:00:00"): {
+                "1": 0.1,
+                "2": 0.5,
+                "3": 0.3999999999999999,
+            },
+        },
+        orient="index",
+    )
+    assert_frame_equal(result, expected)
