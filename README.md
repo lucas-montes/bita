@@ -30,10 +30,10 @@
 
 #### Using Docker
 
-1. Build and run with Docker:
-   ```bash
-   docker compose up --build
-   ```
+Build and run with Docker:
+```bash
+docker compose up --build
+```
 
 ### API Usage
 You can find the docs at:
@@ -43,12 +43,12 @@ localhost:8000/docs
 
 ### Running Tests
 
-If you use nix
+You can either use
 ```bash
 PYTHONPATH=$(pwd) pytest
 ```
 
-Otherwise
-´´´bash
+Or install the app an run
+```bash
 pytest
-´´´
+```

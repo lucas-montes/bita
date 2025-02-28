@@ -107,7 +107,7 @@ def test_weighting_method_equal_weight():
     )
     assert_frame_equal(result, expected)
 
-
+#NOTE: you can add params and use pytest-benchmark to test performance
 def test_calculate_optimized_weights():
     values = {
         "0": [95.036355, 4.731177, 13.964960],
