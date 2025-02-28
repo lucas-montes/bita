@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from bita.dtos import BacktestRequest, BacktestResponse
-from bita.domain.backtest import run_backtest
+from bita.domain import run_backtest
 import time
 
 app = FastAPI(

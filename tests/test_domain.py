@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas.testing import assert_index_equal, assert_frame_equal
 
-from bita.domain import filters, calendar_rules, weighting
+from bita import domain
 from bita.dtos import CalendarRule, BacktestFilter, WeightingMethod
 
 
@@ -9,14 +9,14 @@ def test_calendar_rule_custom_dates():
     rules = CalendarRule(
         dates=["2024-01-01", "2024-01-15", "2024-02-01"], type_="custom_dates"
     )
-    result = calendar_rules.get_calendar_dates(rules)
+    result = domain._get_calendar_dates(rules)
     expected = pd.DatetimeIndex(["2024-01-01", "2024-01-15", "2024-02-01"])
     assert_index_equal(result, expected)
 
 
 def test_calendar_rule_quarterly_dates():
     rules = CalendarRule(initial_date="2024-01-01", type_="quarterly_dates")
-    result = calendar_rules.get_calendar_dates(rules)
+    result = domain._get_calendar_dates(rules)
     expected = pd.DatetimeIndex(
         ["2024-03-31", "2024-06-30", "2024-09-30", "2024-12-31"]
     )
@@ -33,7 +33,7 @@ def test_filter_top():
     index = pd.to_datetime(["2024-01-01", "2024-01-15", "2024-02-01"])
     data = pd.DataFrame(values, index=index)
     filter_config = BacktestFilter(type_="top_n", n=2, d="prices")
-    result = filters.apply_filter(
+    result = domain._apply_filter(
         filter_config,
         data,
         pd.to_datetime(["2024-01-01", "2024-01-15"]),
@@ -59,7 +59,7 @@ def test_filter_greater():
     index = pd.to_datetime(["2024-01-01", "2024-01-15", "2024-02-01"])
     data = pd.DataFrame(values, index=index)
     filter_config = BacktestFilter(type_="filter_by_value", p=19.0, d="prices")
-    result = filters.apply_filter(
+    result = domain._apply_filter(
         filter_config,
         data,
         pd.to_datetime(["2024-01-01", "2024-01-15"]),
@@ -87,7 +87,7 @@ def test_weighting_method_equal_weight():
     data = pd.DataFrame(values, index=index)
     securities = pd.Index(["0", "1", "2"])
     dates = pd.DatetimeIndex(["2024-01-01", "2024-01-15"])
-    result = weighting.calculate_weights(config, securities, data, dates)
+    result = domain.weighting.calculate_weights(config, securities, data, dates)
 
     expected = pd.DataFrame.from_dict(
         {
@@ -123,7 +123,7 @@ def test_calculate_optimized_weights():
     data = pd.DataFrame(values, index=index)
     securities = pd.Index(["1", "2", "3"])
 
-    result = weighting._calculate_optimized_weights(data[securities], lb=0.1, ub=0.5)
+    result = domain.weighting._calculate_optimized_weights(data[securities], lb=0.1, ub=0.5)
 
     expected = pd.DataFrame.from_dict(
         {

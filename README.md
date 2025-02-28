@@ -32,8 +32,7 @@
 
 1. Build and run with Docker:
    ```bash
-   docker build -t bita .
-   docker run -p 8000:8000 -v $(pwd)/data:/app/data bita
+   docker compose up --build
    ```
 
 ### API Usage
@@ -46,7 +45,7 @@ localhost:8000/docs
 
 If you use nix
 ```bash
-PYTHONPATH=$(pwd) pytest tests/test_services.py
+PYTHONPATH=$(pwd) pytest
 ```
 
 Otherwise

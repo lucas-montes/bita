@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from bita.dtos import WeightingMethod, WeightingMethodType
 
 
@@ -7,7 +6,7 @@ def calculate_weights(
     weighting_method: WeightingMethod,
     securities: pd.Index,
     data: pd.DataFrame,
-    dates: pd.DatetimeIndex
+    dates: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Calculate weights for the selected securities based on the weighting method.
@@ -21,7 +20,7 @@ def calculate_weights(
     Returns:
         DataFrame with securities weights
     """
-    df  = data[securities]
+    df = data.filter(securities)
     if weighting_method.type_ == WeightingMethodType.EQUAL_WEIGHT:
         df[:] = 1 / len(securities)
         return df

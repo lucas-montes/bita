@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, field_validator
 from datetime import date
 from enum import Enum
 
+
 class CalendarRuleType(str, Enum):
     CUSTOM_DATES = "custom_dates"
     QUARTERLY_DATES = "quarterly_dates"
@@ -32,22 +33,23 @@ class CalendarRule(BaseModel):
 
 class BacktestFilter(BaseModel):
     type_: FilterType
-    n: int | None = Field(default= None, gt=0)
-    p: float | None = Field(default= None, gt=0)
+    n: int | None = Field(default=None, gt=0)
+    p: float | None = Field(default=None, gt=0)
     d: SecurityValue
 
 
 class WeightingMethod(BaseModel):
     type_: WeightingMethodType
-    lb: float | None = Field(default= None, gt=0)
-    ub: float | None = Field(default= None, gt=0)
+    lb: float | None = Field(default=None, gt=0)
+    ub: float | None = Field(default=None, gt=0)
     d: SecurityValue
 
 
 class BacktestRequest(BaseModel):
     calendar_rule: CalendarRule
-    filter: BacktestFilter
+    backtest_filter: BacktestFilter
     weighting_method: WeightingMethod
+
 
 class BacktestResponse(BaseModel):
     execution_time: float
