@@ -1,4 +1,31 @@
 services:
+  test-api:
+    environment:
+      WORKERS: 1
+      THREADS: 2
+      PORT: 8080
+      TAG: "test"
+    container_name: test-api
+    ports:
+      - "8080:8080"
+    cpu_count: 1
+    mem_swappiness: 0
+    memswap_limit: 4gb
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 4gb
+        reservations:
+          cpus: "1"
+          memory: 4gb
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: test-api
+    volumes:
+      - ./data:/app/data
+
   api:
     build:
       context: .

@@ -2,3 +2,9 @@
 data/
 __pycache__
 *cache*
+.coverage
+htmlcov/
+*egg-info/
+load-results
+.benchmarks
+.venv
