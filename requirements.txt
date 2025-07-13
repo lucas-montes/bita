@@ -1,6 +1,0 @@
-fastapi[standard]==0.115.3
-numpy==1.26.4
-pandas==2.2.3
-pyarrow==18.0.0
-pydantic==2.9.2
-pytest==8.3.3
