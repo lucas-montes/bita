@@ -22,26 +22,27 @@
     python = pkgs.python313;
 
     # Returns a function that can be passed to `python.withPackages`
-    arg = project.renderers.withPackages {inherit python;};
+    arg = project.renderers.withPackages {
+      inherit python;
+      # extras = ["dev"];  # Include test optional dependencies
+    };
 
-    # Returns a wrapped environment (virtualenv like) with all our packages
+    # Production environment (just dependencies)
     projectEnv = python.withPackages arg;
 
-     runScript = pkgs.writeShellScript "bita-run" ''
+    runScript = pkgs.writeShellScript "bita-run" ''
       exec ${projectEnv}/bin/fastapi run bita
     '';
 
     devScript = pkgs.writeShellScript "bita-dev" ''
       exec ${projectEnv}/bin/fastapi dev bita
     '';
-
   in {
     # Development shell
     devShells.${system}.default = pkgs.mkShell {
-      packages = [
-        projectEnv
-        pkgs.git
-      ];
+      venvDir = ".venv";
+
+      packages = [(python.withPackages (p: with p; [venvShellHook]))];
 
       shellHook = ''
         echo "🚀 Bita development environment"
@@ -54,15 +55,14 @@
         echo "  python generate-data.py   - Generate test data"
         echo "  nix build                 - Build the package"
         echo "  nix run                   - Run the application"
+        echo "  nix run .#dev             - Run in development mode"
       '';
     };
 
     # Build the package
-    packages.${system} = {
-      default = python.pkgs.buildPythonPackage (
-        project.renderers.buildPythonPackage {inherit python;}
-      );
-    };
+    packages.${system}.default = python.pkgs.buildPythonPackage (
+      project.renderers.buildPythonPackage {inherit python;}
+    );
 
     # Application for running
     apps.${system} = {
@@ -75,7 +75,6 @@
         type = "app";
         program = "${devScript}";
       };
-
     };
   };
 }

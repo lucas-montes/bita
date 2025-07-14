@@ -47,7 +47,7 @@ STATE_NOT_RUNNING = {
 
 
 def get_dockerfile_information() -> dict:
-    with open("docker-compose.yml", "r") as file:
+    with open("docker-compose.yaml", "r") as file:
         services = yaml.safe_load(file)["services"]
         service_name = next(filter(lambda x: x.startswith("test"), services))
         return services[service_name]

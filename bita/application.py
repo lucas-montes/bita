@@ -66,5 +66,5 @@ class QuarterlyDatesRule(AbstractDateFactory):
     initial_date: date
 
     def get_dates(self) -> pd.DatetimeIndex:
-        max_date = date(2025, 1, 22)
+        max_date = date(2025, 7, 12)
         return pd.date_range(start=self.initial_date, end=max_date, freq="QE")

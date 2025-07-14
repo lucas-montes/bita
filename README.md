@@ -4,9 +4,7 @@
 1. Using the pyarrow backend can drive some perf improvements
 2. Reading the files with pyarrow instead of pandas can allow to do some predicate pushdown
 3. Memray or pytest-benchmark could be used in tests to have better restrictions memory and performance wise
-4. Business should have used behave for the specifications 
-5. If we have multiple cores we could use an processpool to execute the blocking functions
-6. Use locust to measure the performance of the overall app
+4. Use locust to measure the performance of the overall app
 
 ## Getting Started
 
@@ -21,7 +19,7 @@
    ```
 
 2. Install dependencies:
-  If you don't use nix and direnv you may want to create a virtualenv before installing 
+  If you don't use nix and direnv you may want to create a virtualenv before installing
    ```bash
    pip install -r requirements.txt
    ```
