@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field, field_validator
+from __future__ import annotations
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import date
 from enum import Enum
 import pandas as pd
@@ -7,7 +9,7 @@ class SecurityValue(str, Enum):
     MARKET_CAP = "market_capitalization"
     VOLUME = "volume"
     PRICES = "prices"
-    ADTV = "adtv_3_motnhs"
+    ADTV = "adtv_3_month"
 
 
 class WeightingMethod(BaseModel):
@@ -15,8 +17,15 @@ class WeightingMethod(BaseModel):
     ub: float | None = Field(default=None, gt=0)
     d: SecurityValue
 
+    @model_validator(mode='after')
+    def validate_lb(self) -> "WeightingMethod":
+        if self.lb is not None and self.ub is not None and self.lb >= self.ub:
+            raise ValueError("lb should be less than ub")
+        return self
+
     def empty_bounds(self)->bool:
-        return self.lb is None and self.ub is None
+        #TODO: this could be better, but it is a quick fix
+        return self.lb is None or self.ub is None
 
 
 class AbstractBacktestFilter(BaseModel):
