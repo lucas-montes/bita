@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import csv
 import logging
 import time
@@ -45,13 +46,25 @@ STATE_NOT_RUNNING = {
     STATE_CLEANUP,
 }
 
-
 def get_dockerfile_information() -> dict:
     with open("docker-compose.yaml", "r") as file:
         services = yaml.safe_load(file)["services"]
         service_name = next(filter(lambda x: x.startswith("test"), services))
         return services[service_name]
 
+def fix_volume_paths(volumes: list[str]):
+    fixed = []
+    for v in volumes:
+        if isinstance(v, str) and ':' in v:
+            host, container = v.split(':', 1)
+            if not os.path.isabs(host):
+                host = os.path.abspath(host)
+            fixed.append(f"{host}:{container}")
+        else:
+            fixed.append(v)
+    return fixed
+
+DOCKER_INFO = get_dockerfile_information()
 
 class ServerProvider:
     __slots__ = (
@@ -102,6 +115,7 @@ class ServerProvider:
         return image.replace(r"${TAG}", tag) if image.endswith(r"${TAG}") else image
 
     def _start_docker(self, memory: str, cpu: int, name: str, image: str) -> None:
+        volumes = fix_volume_paths(DOCKER_INFO.get("volumes", []))
         try:
             nano_cpus, cpuset_cpus = self._get_cpu_values(cpu)
             self.container: Container = self.docker_client.containers.run(
@@ -125,6 +139,8 @@ class ServerProvider:
                         self.locenv.parsed_options.service_port,
                     )
                 },
+                volumes=volumes,
+                # volumes={volumes: {"bind": volumes, "mode": "ro"}},
             )
             logger.debug("Starting container %s from image %s", name, image)
 
@@ -198,61 +214,60 @@ class ServerProvider:
 
 
 def add_args_to_parser(parser: LocustArgumentParser) -> None:
-    docker_info = get_dockerfile_information()
     parser.add_argument(
         "--name",
         type=str,
-        default=docker_info["container_name"],
+        default=DOCKER_INFO["container_name"],
         help="A name for the reports and the container if you are using custom settings. A report's name would look "
         "like: <name>-<cpu>cpu-<memory><memory-unit>memory-<date>",
     )
     parser.add_argument(
         "--gunicorn-threads",
         type=int,
-        default=docker_info["environment"]["THREADS"],
+        default=DOCKER_INFO["environment"]["THREADS"],
         help="The number of threads that gunicorn can use. This will override the value of the .env file.",
     )
     parser.add_argument(
         "--gunicorn-workers",
         type=int,
-        default=docker_info["environment"]["WORKERS"],
+        default=DOCKER_INFO["environment"]["WORKERS"],
         help="The number of workers that gunicorn can use. This will override the value of the .env file.",
     )
     parser.add_argument(
         "--service-port",
         type=str,
-        default=docker_info["environment"]["PORT"],
+        default=DOCKER_INFO["environment"]["PORT"],
         help="The port for the service to use",
     )
     parser.add_argument(
         "--cpu",
         type=int,
-        default=docker_info["deploy"]["resources"]["limits"]["cpus"],
+        default=DOCKER_INFO["deploy"]["resources"]["limits"]["cpus"],
         help="The number of cpus availables to the container. 1 CPU probably has 1 core and 2 threads.",
     )
     parser.add_argument(
         "--memory",
         type=int,
-        default=docker_info["deploy"]["resources"]["limits"]["memory"][0],
+        default=DOCKER_INFO["deploy"]["resources"]["limits"]["memory"][0],
         help="The amount of memory available to the container.",
     )
     parser.add_argument(
         "--memory-unit",
         type=str,
         choices=("gb", "mb", "kb"),
-        default=docker_info["deploy"]["resources"]["limits"]["memory"][1:],
+        default=DOCKER_INFO["deploy"]["resources"]["limits"]["memory"][1:],
         help="The unit for the amount of memory",
     )
     parser.add_argument(
         "--image",
         type=str,
-        default=docker_info["image"],
+        default=DOCKER_INFO["image"],
         help="The image for your docker container",
     )
     parser.add_argument(
         "--docker-tag",
         type=str,
-        default=docker_info["environment"]["TAG"],
+        default=DOCKER_INFO["environment"]["TAG"],
         help="The tag for the docker image",
     )
 
@@ -263,7 +278,11 @@ class TestSetUp:
     def __init__(self, environment: env.Environment) -> None:
         self.locenv = environment
         self.set_up_completed = False
-        use_local = "0.0.0.0:" in environment.host if environment.host is not None else True
+        if environment.host is None:
+            use_local = True
+        else:
+            use_local = any((host in environment.host) for host in ("localhost", "0.0.0.0"))
+
         if environment.web_ui and use_local:
             environment.events.test_start.add_listener(self.test_start_listener)
         elif not environment.web_ui and use_local:
