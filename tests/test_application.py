@@ -18,7 +18,7 @@ def test_calendar_rule_quarterly_dates():
     rules = QuarterlyDatesRule(initial_date="2024-01-01")
     result = rules.get_dates()
     expected = pd.DatetimeIndex(
-        ["2024-03-31", "2024-06-30", "2024-09-30", "2024-12-31"]
+        ["2024-03-31", "2024-06-30", "2024-09-30", "2024-12-31", "2025-03-31", "2025-06-30"]
     )
     assert_index_equal(result, expected)
 
