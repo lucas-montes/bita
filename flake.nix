@@ -24,7 +24,8 @@
           packages = with pkgs; [
             (with python3Packages; [
               venvShellHook
-              locust
+              #locust
+              gevent
               numpy
               pydantic
               pandas

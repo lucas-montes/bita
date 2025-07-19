@@ -57,5 +57,5 @@ class User(HttpUser):
         self.payload = generate_all_payload_combinations(dates)
 
     @task
-    def good_requests(self):
+    def random_requests(self):
         self.client.post(url=self.url, json=next(self.payload))

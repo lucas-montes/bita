@@ -3,11 +3,11 @@ services:
     environment:
       WORKERS: 1
       THREADS: 2
-      PORT: 8080
+      PORT: 8000
       TAG: "test"
     container_name: test-api
     ports:
-      - "8080:8080"
+      - "8000:8000"
     cpu_count: 1
     mem_swappiness: 0
     memswap_limit: 4gb
