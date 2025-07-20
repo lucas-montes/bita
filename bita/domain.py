@@ -69,7 +69,9 @@ def _calculate_weights(
         df[:] = 1 / len(securities)
         return df
 
-    assert weighting_method.lb is not None and weighting_method.ub is not None, "Bounds must not be None here"
+    assert weighting_method.lb is not None and weighting_method.ub is not None, (
+        "Bounds must not be None here"
+    )
     return _calculate_optimized_weights(df, weighting_method.lb, weighting_method.ub)
 
 
