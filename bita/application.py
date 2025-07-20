@@ -60,7 +60,7 @@ class CustomDatesRule(AbstractDateFactory):
     dates: list[date]
 
     @field_validator("dates")
-    def validate_zones(cls, v) -> list[date]:
+    def validate_zones(cls, v: list[date]) -> list[date]:
         if not v:
             raise ValueError("dates cannot be empty")
         return v

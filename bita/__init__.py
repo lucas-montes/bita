@@ -32,7 +32,7 @@ async def backtest(request: BacktestRequest) -> BacktestResponse:
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> dict[str, float]:
     """
     Simple health check endpoint.
     """
