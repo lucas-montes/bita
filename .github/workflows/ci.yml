@@ -37,5 +37,8 @@ jobs:
       - name: Type check with mypy
         run: mypy bita
 
+      - name: Add dummy data
+        run: python generate-data.py --path ./data --num_securities 1000
+
       - name: Run tests
         run: pytest --maxfail=2 --disable-warnings -v
