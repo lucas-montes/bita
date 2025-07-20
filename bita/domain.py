@@ -1,11 +1,11 @@
-import pandas as pd
-from pathlib import Path
 import time
-from .dtos import (
-    BacktestRequest,
-    BacktestResponse
-)
+from pathlib import Path
+
+import pandas as pd
+
 from .application import WeightingMethod
+from .dtos import BacktestRequest, BacktestResponse
+
 
 def run_backtest(request: BacktestRequest) -> BacktestResponse:
     """
@@ -24,7 +24,7 @@ def run_backtest(request: BacktestRequest) -> BacktestResponse:
     securities_filtered = request.backtest_filter.apply_filter(df_filter)
 
     try:
-        #NOTE: If this often happens a if statement would be better
+        # NOTE: If this often happens a if statement would be better
         df_weights = _read_parquet(request.weighting_method.d.value)
         weights_by_date = _calculate_weights(
             request.weighting_method,
@@ -44,6 +44,7 @@ def _read_parquet(path: str) -> pd.DataFrame:
     project_root = Path(__file__).resolve().parent.parent
     file_path = project_root / "data" / f"{path}.parquet"
     return pd.read_parquet(file_path)
+
 
 def _calculate_weights(
     weighting_method: WeightingMethod,
@@ -71,7 +72,7 @@ def _calculate_weights(
     return _calculate_optimized_weights(df, weighting_method.lb, weighting_method.ub)
 
 
-def _calculate_row_weight(df_row: pd.Series, lb: float, ub: float)-> pd.Series:
+def _calculate_row_weight(df_row: pd.Series, lb: float, ub: float) -> pd.Series:
     n = len(df_row)
 
     sorted_series = df_row.sort_values(ascending=False)
@@ -94,5 +95,7 @@ def _calculate_row_weight(df_row: pd.Series, lb: float, ub: float)-> pd.Series:
     return weights
 
 
-def _calculate_optimized_weights(data: pd.DataFrame, lb: float, ub: float)-> pd.DataFrame:
+def _calculate_optimized_weights(
+    data: pd.DataFrame, lb: float, ub: float
+) -> pd.DataFrame:
     return data.apply(_calculate_row_weight, lb=lb, ub=ub, axis=1)

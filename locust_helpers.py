@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import os
 import csv
 import logging
+import os
 import time
 from collections import namedtuple
 from datetime import datetime
@@ -46,17 +46,19 @@ STATE_NOT_RUNNING = {
     STATE_CLEANUP,
 }
 
+
 def get_dockerfile_information() -> dict:
-    with open("docker-compose.yaml", "r") as file:
+    with open("docker-compose.yaml") as file:
         services = yaml.safe_load(file)["services"]
         service_name = next(filter(lambda x: x.startswith("test"), services))
         return services[service_name]
 
+
 def fix_volume_paths(volumes: list[str]):
     fixed = []
     for v in volumes:
-        if isinstance(v, str) and ':' in v:
-            host, container = v.split(':', 1)
+        if isinstance(v, str) and ":" in v:
+            host, container = v.split(":", 1)
             if not os.path.isabs(host):
                 host = os.path.abspath(host)
             fixed.append(f"{host}:{container}")
@@ -64,7 +66,9 @@ def fix_volume_paths(volumes: list[str]):
             fixed.append(v)
     return fixed
 
+
 DOCKER_INFO = get_dockerfile_information()
+
 
 class ServerProvider:
     __slots__ = (
@@ -104,7 +108,7 @@ class ServerProvider:
         locenv.events.quit.add_listener(self._quit)
 
     def _set_up_writers(self) -> None:
-        self._docker_stats_csv_filehandle = open(
+        self._docker_stats_csv_filehandle = open(  # noqa: SIM115
             f"{self.results_dir}/{self.name}_docker_stats.csv",
             "a",
         )
@@ -183,14 +187,22 @@ class ServerProvider:
         try:
             return MachineStat(
                 memory_usage=docker_stats["memory_stats"].get("usage"),
-                memory_stats_cache=docker_stats["memory_stats"].get("stats", {}).get("cache"),
+                memory_stats_cache=docker_stats["memory_stats"]
+                .get("stats", {})
+                .get("cache"),
                 memory_limit=docker_stats["memory_stats"].get("limit"),
                 cpu_usage=docker_stats["cpu_stats"]["cpu_usage"].get("total_usage"),
-                precpu_usage=docker_stats["precpu_stats"]["cpu_usage"].get("total_usage"),
+                precpu_usage=docker_stats["precpu_stats"]["cpu_usage"].get(
+                    "total_usage"
+                ),
                 system_cpu_usage=docker_stats["cpu_stats"].get("system_cpu_usage"),
-                system_precpu_usage=docker_stats["precpu_stats"].get("system_cpu_usage"),
+                system_precpu_usage=docker_stats["precpu_stats"].get(
+                    "system_cpu_usage"
+                ),
                 online_cpus=docker_stats["cpu_stats"]["online_cpus"],
-                number_cpus=len(docker_stats["cpu_stats"]["cpu_usage"].get("percpu_usage", [])),
+                number_cpus=len(
+                    docker_stats["cpu_stats"]["cpu_usage"].get("percpu_usage", [])
+                ),
                 time=time.time(),
                 user_count=self.locenv.runner.user_count,
             )
@@ -204,7 +216,10 @@ class ServerProvider:
     def _update_stats(self) -> None:
         last_flush_time: float = 0.0
         stats_source = self.container.stats(decode=True, stream=True)
-        while self.locenv.runner.state not in STATE_NOT_RUNNING and self.container.status == "running":
+        while (
+            self.locenv.runner.state not in STATE_NOT_RUNNING
+            and self.container.status == "running"
+        ):
             stats = self._get_machine_stats(next(stats_source))
             self._docker_stats_csv_writer.writerow(stats)
             now = time.time()
@@ -281,14 +296,16 @@ class TestSetUp:
         if environment.host is None:
             use_local = True
         else:
-            use_local = any((host in environment.host) for host in ("localhost", "0.0.0.0"))
+            use_local = any(
+                (host in environment.host) for host in ("localhost", "0.0.0.0")
+            )
 
         if environment.web_ui and use_local:
             environment.events.test_start.add_listener(self.test_start_listener)
         elif not environment.web_ui and use_local:
             self.set_up()
 
-    def test_start_listener(self, environment: env.Environment) -> None:
+    def test_start_listener(self, _environment: env.Environment) -> None:
         # happens only once in headless runs, but can happen multiple times in web ui-runs
         if not self.set_up_completed:
             self.set_up()

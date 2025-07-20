@@ -1,12 +1,14 @@
-from fastapi import FastAPI, HTTPException
-from bita.dtos import BacktestRequest, BacktestResponse
-from bita.domain import run_backtest
 import time
+
+from fastapi import FastAPI, HTTPException
+
+from bita.domain import run_backtest
+from bita.dtos import BacktestRequest, BacktestResponse
 
 app = FastAPI(
     title="Bitacore Mini",
     description="A miniature backtesting API for financial portfolios",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 
@@ -26,7 +28,7 @@ async def backtest(request: BacktestRequest) -> BacktestResponse:
     try:
         return run_backtest(request)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/health")

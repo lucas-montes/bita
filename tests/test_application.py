@@ -1,14 +1,18 @@
 import pandas as pd
-from pandas.testing import assert_index_equal, assert_frame_equal
+from pandas.testing import assert_frame_equal, assert_index_equal
 
 from bita import domain
-from bita.application import QuarterlyDatesRule, CustomDatesRule, WeightingMethod, BacktestFilterLowerThanP, BacktestFilterTopN
+from bita.application import (
+    BacktestFilterLowerThanP,
+    BacktestFilterTopN,
+    CustomDatesRule,
+    QuarterlyDatesRule,
+    WeightingMethod,
+)
 
 
 def test_calendar_rule_custom_dates():
-    rules = CustomDatesRule(
-        dates=["2024-01-01", "2024-01-15", "2024-02-01"]
-    )
+    rules = CustomDatesRule(dates=["2024-01-01", "2024-01-15", "2024-02-01"])
     result = rules.get_dates()
     expected = pd.DatetimeIndex(["2024-01-01", "2024-01-15", "2024-02-01"])
     assert_index_equal(result, expected)
@@ -18,7 +22,14 @@ def test_calendar_rule_quarterly_dates():
     rules = QuarterlyDatesRule(initial_date="2024-01-01")
     result = rules.get_dates()
     expected = pd.DatetimeIndex(
-        ["2024-03-31", "2024-06-30", "2024-09-30", "2024-12-31", "2025-03-31", "2025-06-30"]
+        [
+            "2024-03-31",
+            "2024-06-30",
+            "2024-09-30",
+            "2024-12-31",
+            "2025-03-31",
+            "2025-06-30",
+        ]
     )
     assert_index_equal(result, expected)
 
@@ -31,11 +42,11 @@ def test_filter_top():
         "3": [42.654515, 66.993398, 73.648067],
     }
     index = pd.to_datetime(["2024-01-01", "2024-01-15", "2024-02-01"])
-    data = pd.DataFrame(values, index=index).loc[pd.to_datetime(["2024-01-01", "2024-01-15"])]
+    data = pd.DataFrame(values, index=index).loc[
+        pd.to_datetime(["2024-01-01", "2024-01-15"])
+    ]
     filter_config = BacktestFilterTopN(n=2, d="prices")
-    result = filter_config.apply_filter(
-        data
-    )
+    result = filter_config.apply_filter(data)
     expected = pd.DataFrame.from_dict(
         {
             pd.Timestamp("2024-01-01 00:00:00"): {"0": 95.036355, "3": 42.654515},
@@ -55,11 +66,11 @@ def test_filter_greater():
         "3": [42.654515, 66.993398, 73.648067],
     }
     index = pd.to_datetime(["2024-01-01", "2024-01-15", "2024-02-01"])
-    data = pd.DataFrame(values, index=index).loc[pd.to_datetime(["2024-01-01", "2024-01-15"])]
+    data = pd.DataFrame(values, index=index).loc[
+        pd.to_datetime(["2024-01-01", "2024-01-15"])
+    ]
     filter_config = BacktestFilterLowerThanP(p=19.0, d="prices")
-    result = filter_config.apply_filter(
-        data
-    )
+    result = filter_config.apply_filter(data)
     expected = pd.DataFrame.from_dict(
         {
             pd.Timestamp("2024-01-01 00:00:00"): {"2": 29.631908, "3": 42.654515},
@@ -107,7 +118,8 @@ def test_weighting_method_equal_weight():
     )
     assert_frame_equal(result, expected)
 
-#NOTE: you can add params and use pytest-benchmark to test performance
+
+# NOTE: you can add params and use pytest-benchmark to test performance
 def test_calculate_optimized_weights():
     values = {
         "0": [95.036355, 4.731177, 13.964960],

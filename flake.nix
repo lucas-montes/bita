@@ -32,6 +32,8 @@
               pyarrow
               docker
               pyyaml
+              ruff
+              mypy
             ])
           ];
         };

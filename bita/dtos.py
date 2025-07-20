@@ -1,7 +1,14 @@
-from pydantic import BaseModel
 from datetime import date
 
-from .application import WeightingMethod, CustomDatesRule, QuarterlyDatesRule, BacktestFilterTopN, BacktestFilterLowerThanP
+from pydantic import BaseModel
+
+from .application import (
+    BacktestFilterLowerThanP,
+    BacktestFilterTopN,
+    CustomDatesRule,
+    QuarterlyDatesRule,
+    WeightingMethod,
+)
 
 
 class BacktestRequest(BaseModel):

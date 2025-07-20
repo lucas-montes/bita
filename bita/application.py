@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import date
 from enum import Enum
+
 import pandas as pd
+from pydantic import BaseModel, Field, field_validator, model_validator
+
 
 class SecurityValue(str, Enum):
     MARKET_CAP = "market_capitalization"
@@ -17,14 +19,14 @@ class WeightingMethod(BaseModel):
     ub: float | None = Field(default=None, gt=0)
     d: SecurityValue
 
-    @model_validator(mode='after')
-    def validate_lb(self) -> "WeightingMethod":
+    @model_validator(mode="after")
+    def validate_lb(self) -> WeightingMethod:
         if self.lb is not None and self.ub is not None and self.lb >= self.ub:
             raise ValueError("lb should be less than ub")
         return self
 
-    def empty_bounds(self)->bool:
-        #TODO: this could be better, but it is a quick fix
+    def empty_bounds(self) -> bool:
+        # TODO: this could be better, but it is a quick fix
         return self.lb is None or self.ub is None
 
 
@@ -39,11 +41,7 @@ class BacktestFilterTopN(AbstractBacktestFilter):
     n: int = Field(gt=0)
 
     def apply_filter(self, data: pd.DataFrame) -> pd.DataFrame:
-        return (
-            data.transpose()
-            .nlargest(self.n, data.index)
-            .transpose()
-        )
+        return data.transpose().nlargest(self.n, data.index).transpose()
 
 
 class BacktestFilterLowerThanP(AbstractBacktestFilter):
