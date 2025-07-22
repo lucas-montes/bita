@@ -305,7 +305,7 @@ class TestSetUp:
         elif not environment.web_ui and use_local:
             self.set_up()
 
-    def test_start_listener(self, _environment: env.Environment) -> None:
+    def test_start_listener(self, **_) -> None:
         # happens only once in headless runs, but can happen multiple times in web ui-runs
         if not self.set_up_completed:
             self.set_up()
